@@ -114,7 +114,7 @@ class DivScalar(TensorOp):
     def __init__(self, scalar):
         self.scalar = scalar
 
-    def compute(self, a: NDArray):
+    def compute(self, a):
         ### BEGIN YOUR SOLUTION
         return a / self.scalar
         ### END YOUR SOLUTION
@@ -281,9 +281,24 @@ class Log(TensorOp):
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
-        x = node.inputs
+        x = node.inputs[0]
         return (out_grad / x, )
         ### END YOUR SOLUTION
+
+class Average(TensorOp):
+    def __init__(self, axes = None):
+        self.axes = None
+
+    def compute(self, a: NDArray):
+        return array_api.mean(a, self.axes)
+    
+    def gradient(self, out_grad, node):
+        x = node.inputs[0]
+        return (broadcast_to(out_grad, x.shape), )
+
+def mean(a, axis = None):
+    return Average(axis)(a)
+
 
 
 def log(a):
@@ -298,8 +313,8 @@ class Exp(TensorOp):
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
-        x, _ = node.inputs[0]
-        raise (out_grad * x * exp(x),)
+        x = node.inputs[0]
+        return (out_grad * exp(x),)
         ### END YOUR SOLUTION
 
 
@@ -310,12 +325,13 @@ def exp(a):
 class ReLU(TensorOp):
     def compute(self, a: NDArray):
         ### BEGIN YOUR SOLUTION
-        return array_api.maximum(a, 0)
+        return array_api.maximum(a, 0.)
         ### END YOUR SOLUTION
 
     def gradient(self, out_grad, node):
         ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
+        x = node.inputs[0]
+        return (out_grad * (x.realize_cached_data() > 0.), )
         ### END YOUR SOLUTION
 
 def relu(a):

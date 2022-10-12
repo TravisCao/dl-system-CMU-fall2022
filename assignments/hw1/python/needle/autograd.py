@@ -370,6 +370,9 @@ class Tensor(Value):
 
     def reshape(self, shape):
         return needle.ops.Reshape(shape)(self)
+    
+    def mean(self, axis=None):
+        return needle.ops.Average(axis)(self)
 
     def __neg__(self):
         return needle.ops.Negate()(self)
